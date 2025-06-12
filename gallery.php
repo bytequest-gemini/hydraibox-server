@@ -5,9 +5,9 @@ require 'vendor/autoload.php';
 // CONFIGURAZIONE: Inserisci qui le stesse credenziali che hai usato in upload.php
 \Cloudinary\Configuration\Configuration::instance([
     'cloud' => [
-        'cloud_name' => 'IL_TUO_CLOUD_NAME', 
-        'api_key'    => 'LA_TUA_API_KEY', 
-        'api_secret' => 'LA_TUA_API_SECRET'
+        'cloud_name' => 'dj7hgz9pu', 
+        'api_key'    => '693237159966493', 
+        'api_secret' => '6Pf3S63mWuI_w_VW_kovaapD5sQ'
     ],
     'url' => ['secure' => true]
 ]);
