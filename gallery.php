@@ -12,15 +12,18 @@ require 'vendor/autoload.php';
     'url' => ['secure' => true]
 ]);
 
-// Usiamo l'API di ricerca di Cloudinary per trovare le nostre immagini
-$search = new \Cloudinary\Api\Search\Search();
+// Usiamo l'API di Amministrazione per chiedere le risorse (assets)
+$adminApi = new \Cloudinary\Api\AdminApi();
 
-// Cerchiamo tutte le immagini nella cartella 'hydraibox'
-// e le ordiniamo dalla più recente alla più vecchia
-$result = $search->expression('folder=hydraibox')
-                 ->sort_by('uploaded_at','desc')
-                 ->max_results(50) // Mostriamo al massimo le ultime 50 immagini
-                 ->execute();
+// Chiediamo le risorse di tipo 'upload' dalla cartella 'hydraibox'
+// ordinate per data di creazione, dalla più recente
+$result = $adminApi->assets([
+    "type"        => "upload",
+    "prefix"      => "hydraibox", // Filtra per la cartella che abbiamo specificato nell'upload
+    "max_results" => 50,
+    "direction"   => "desc"
+]);
+
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -44,7 +47,7 @@ $result = $search->expression('folder=hydraibox')
         if (isset($result['resources']) && count($result['resources']) > 0) {
             foreach($result['resources'] as $image) {
                 // Estrae la data di caricamento e la formatta
-                $upload_date = date('d-m-Y H:i:s', strtotime($image['uploaded_at']));
+                $upload_date = date('d-m-Y H:i:s', strtotime($image['created_at']));
 
                 echo '<div class="image-card">';
                 // Usiamo l'URL sicuro fornito da Cloudinary
@@ -53,7 +56,7 @@ $result = $search->expression('folder=hydraibox')
                 echo '</div>';
             }
         } else {
-            echo '<p>Nessuna immagine trovata su Cloudinary. Attendi che l\'ESP32 invii il primo fotogramma.</p>';
+            echo '<p>Nessuna immagine trovata su Cloudinary. L\'upload potrebbe essere fallito o non ancora avvenuto.</p>';
         }
         ?>
     </div>
