@@ -1,40 +1,59 @@
+<?php
+// Includiamo la libreria di Cloudinary
+require 'vendor/autoload.php';
+
+// CONFIGURAZIONE: Inserisci qui le stesse credenziali che hai usato in upload.php
+\Cloudinary\Configuration\Configuration::instance([
+    'cloud' => [
+        'cloud_name' => 'IL_TUO_CLOUD_NAME', 
+        'api_key'    => 'LA_TUA_API_KEY', 
+        'api_secret' => 'LA_TUA_API_SECRET'
+    ],
+    'url' => ['secure' => true]
+]);
+
+// Usiamo l'API di ricerca di Cloudinary per trovare le nostre immagini
+$search = new \Cloudinary\Api\Search\Search();
+
+// Cerchiamo tutte le immagini nella cartella 'hydraibox'
+// e le ordiniamo dalla più recente alla più vecchia
+$result = $search->expression('folder=hydraibox')
+                 ->sort_by('uploaded_at','desc')
+                 ->max_results(50) // Mostriamo al massimo le ultime 50 immagini
+                 ->execute();
+?>
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galleria Fotogrammi ESP32-CAM</title>
+    <title>Galleria Hydraibox</title>
     <style>
-        body { font-family: sans-serif; background-color: #f0f2f5; }
+        body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
         h1 { text-align: center; color: #333; }
-        .gallery-container { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; padding: 20px; }
-        .image-card { background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; }
-        .image-card img { display: block; max-width: 320px; height: auto; }
-        .image-card p { text-align: center; margin: 10px 0; font-size: 0.9em; color: #555; }
+        .gallery-container { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+        .image-card { background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
+        .image-card img { display: block; width: 100%; max-width: 400px; height: auto; }
+        .image-card p { margin: 10px 0; font-size: 0.9em; color: #555; }
     </style>
 </head>
 <body>
-    <h1>Galleria Fotogrammi ESP32-CAM</h1>
+    <h1>Galleria Immagini Hydraibox</h1>
     <div class="gallery-container">
         <?php
-        $upload_dir = 'uploads/';
-        // Trova tutti i file .jpg nella cartella
-        $images = glob($upload_dir . '*.jpg');
-        
-        // Ordina i file in ordine inverso (dal più recente al più vecchio)
-        rsort($images);
-        
-        if (count($images) > 0) {
-            foreach($images as $image) {
-                // Estrae il solo nome del file dal percorso completo
-                $file_name = basename($image);
+        if (isset($result['resources']) && count($result['resources']) > 0) {
+            foreach($result['resources'] as $image) {
+                // Estrae la data di caricamento e la formatta
+                $upload_date = date('d-m-Y H:i:s', strtotime($image['uploaded_at']));
+
                 echo '<div class="image-card">';
-                echo '<a href="' . $image . '" target="_blank"><img src="' . $image . '" alt="' . $file_name . '"></a>';
-                echo '<p>' . $file_name . '</p>';
+                // Usiamo l'URL sicuro fornito da Cloudinary
+                echo '<a href="' . $image['secure_url'] . '" target="_blank"><img src="' . $image['secure_url'] . '" alt="Immagine acquario"></a>';
+                echo '<p>Caricata il: ' . $upload_date . '</p>';
                 echo '</div>';
             }
         } else {
-            echo '<p>Nessuna immagine trovata. Attendi che l\'ESP32-CAM invii il primo fotogramma.</p>';
+            echo '<p>Nessuna immagine trovata su Cloudinary. Attendi che l\'ESP32 invii il primo fotogramma.</p>';
         }
         ?>
     </div>
