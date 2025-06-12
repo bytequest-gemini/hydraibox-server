@@ -5,7 +5,8 @@ FROM php:8.2-apache
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     zip \
-    unzip
+    unzip \
+    libcurl4-openssl-dev
 
 # Usiamo lo script helper per installare le estensioni PHP
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
@@ -23,14 +24,18 @@ WORKDIR /var/www/html
 # Copiamo TUTTI i file del nostro progetto.
 COPY . .
 
-# Lanciamo Composer.
+# Lanciamo Composer con le opzioni ottimizzate per la produzione.
 RUN composer install --no-dev --optimize-autoloader
+
+# --- LA MOSSA FINALE: Disabilitare la cache aggressiva di PHP (OPcache) ---
+# Creiamo un file di configurazione che dice a OPcache di controllare SEMPRE se i file
+# sono stati modificati, invece di usare una versione vecchia in memoria.
+# Questo dovrebbe risolvere il nostro problema del "fantasma".
+RUN echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/opcache-fix.ini && \
+    echo "opcache.revalidate_freq=0" >> /usr/local/etc/php/conf.d/opcache-fix.ini
 
 # Diamo i permessi corretti all'intera cartella.
 RUN chown -R www-data:www-data /var/www/html
 
-
-# --- COMANDO DI AVVIO MODIFICATO PER DIAGNOSTICA ---
-# Invece di avviare Apache, eseguiamo questi comandi e poi terminiamo.
-# Questo ci mostrerà lo stato esatto del filesystem QUANDO il container è in esecuzione.
-CMD ["/bin/sh", "-c", "echo '--- REPORT DIAGNOSTICO DI RUNTIME ---'; echo '==> Percorso attuale:'; pwd; echo '==> Contenuto cartella /var/www/html:'; ls -la /var/www/html; echo '==> Contenuto cartella /var/www/html/vendor:'; ls -la /var/www/html/vendor; echo '--- FINE REPORT ---'"]
+# Diciamo al mondo esterno che la nostra scatola ascolta sulla porta 80.
+EXPOSE 80
