@@ -1,6 +1,6 @@
 <?php
-// Includiamo la libreria di Cloudinary che Composer ha installato
-require 'vendor/autoload.php';
+// NUOVA PRIMA RIGA: Usa un percorso assoluto basato sulla posizione dello script stesso.
+require __DIR__ . '/vendor/autoload.php';
 
 // CONFIGURAZIONE: Inserisci qui le credenziali che trovi nella dashboard di Cloudinary
 \Cloudinary\Configuration\Configuration::instance([

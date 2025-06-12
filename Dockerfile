@@ -19,13 +19,17 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 # Impostiamo la cartella di lavoro
 WORKDIR /var/www/html
 
-# --- ECCO LA CORREZIONE ---
-# 1. PRIMA copiamo TUTTI i file del nostro progetto (inclusi composer.json, upload.php, etc.)
+# Copiamo TUTTI i file del progetto.
 COPY . .
 
-# 2. ORA, con tutti i file al loro posto, lanciamo Composer.
-# Composer vedrà il file composer.json e creerà la cartella vendor/ accanto agli altri file, senza che venga più sovrascritta.
-RUN composer install --no-dev --optimize-autoloader
+# Lanciamo Composer per installare le dipendenze
+RUN composer install
+
+# --- TELECAMERA SPIA ---
+# Questo comando stamperà la lista dei file e delle cartelle presenti
+# nella directory di lavoro, inclusi i permessi.
+# Cercheremo la cartella "vendor" nell'output dei log di build.
+RUN ls -la
 
 # Diamo i permessi corretti alla cartella di uploads per sicurezza
 RUN chown -R www-data:www-data /var/www/html/uploads

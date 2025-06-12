@@ -1,6 +1,6 @@
 <?php
-// Includiamo la libreria di Cloudinary
-require 'vendor/autoload.php';
+// NUOVA PRIMA RIGA: Usa un percorso assoluto basato sulla posizione dello script stesso.
+require __DIR__ . '/vendor/autoload.php';
 
 // CONFIGURAZIONE: Inserisci qui le stesse credenziali che hai usato in upload.php
 \Cloudinary\Configuration\Configuration::instance([
