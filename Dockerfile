@@ -19,20 +19,17 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 # Impostiamo la cartella di lavoro
 WORKDIR /var/www/html
 
-# Copiamo TUTTI i file del progetto.
+# Copiamo TUTTI i file del nostro progetto.
 COPY . .
 
 # Lanciamo Composer per installare le dipendenze
 RUN composer install
 
-# --- TELECAMERA SPIA ---
-# Questo comando stamperà la lista dei file e delle cartelle presenti
-# nella directory di lavoro, inclusi i permessi.
-# Cercheremo la cartella "vendor" nell'output dei log di build.
-RUN ls -la
-
-# Diamo i permessi corretti alla cartella di uploads per sicurezza
-RUN chown -R www-data:www-data /var/www/html/uploads
+# --- LA MODIFICA CHIAVE FINALE ---
+# Diamo i permessi corretti ALL'INTERA CARTELLA dell'applicazione, non solo a uploads.
+# Questo assicura che il server Apache (che gira come utente www-data) sia il proprietario
+# del codice che deve eseguire, risolvendo ogni potenziale problema di permessi.
+RUN chown -R www-data:www-data /var/www/html
 
 # Diciamo al mondo esterno che la nostra scatola ascolta sulla porta 80
 EXPOSE 80
